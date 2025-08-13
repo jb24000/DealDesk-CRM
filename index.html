@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DealDesk CRM — Wholesale & Sub-To</title>
+  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50:'#ecfeff',100:'#cffafe',200:'#a5f3fc',300:'#67e8f9',400:'#22d3ee',500:'#06b6d4',600:'#0891b2',700:'#0e7490',800:'#155e75',900:'#164e63' },
+            accent: { 50:'#fdf4ff',100:'#fae8ff',200:'#f5d0fe',300:'#f0abfc',400:'#e879f9',500:'#d946ef',600:'#c026d3',700:'#a21caf',800:'#86198f',900:'#701a75' },
+            ok: '#16a34a', warn:'#f59e0b', info:'#0ea5e9'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css"/>
+
+  <!-- Manifest -->
+  <link rel="manifest" id="app-manifest" />
+  <script>
+    const manifest = {
+      name: "DealDesk CRM — Wholesale & Sub-To",
+      short_name: "DealDesk",
+      display: "standalone",
+      start_url: ".",
+      background_color: "#06b6d4",
+      theme_color: "#06b6d4",
+      icons: [
+        { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cdefs/%3E%3Crect width='128' height='128' rx='24' fill='%2306b6d4'/%3E%3Cpath d='M24 96h80v10H24zM28 24h72v38H72l-8 8-8-8H28z' fill='white'/%3E%3C/svg%3E", sizes: "128x128", type: "image/svg+xml" }
+      ]
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const m = document.getElementById('app-manifest');
+      m.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest)));
+    });
+  </script>
+
+  <style>
+    :root { --ring: 0 0 0 3px rgb(14 165 233 / .25); }
+    .card { background:white; border-radius:1rem; box-shadow:0 10px 30px rgba(2,132,199,.08); padding:1rem; border:1px solid #e2e8f0; }
+    .btn  { display:inline-flex; align-items:center; gap:.5rem; padding:.6rem 1rem; border-radius:.9rem; border:1px solid #e2e8f0; font-size:.9rem; font-weight:600; transition:transform .05s ease; }
+    .btn:active { transform:scale(.98) }
+    .btn-primary { background:#06b6d4; color:white; border-color:#0e7490; }
+    .btn-outline { background:white; color:#0e7490; border-color:#7dd3fc; }
+    .btn-accent { background:#d946ef; color:white; border-color:#a21caf; }
+    .badge { display:inline-flex; align-items:center; padding:.125rem .6rem; border-radius:999px; font-size:.75rem; font-weight:700; }
+    .badge-lead{background:#e5e7eb;color:#111827}.badge-offer{background:#e0f2fe;color:#075985}.badge-pending{background:#fef9c3;color:#854d0e}
+    .badge-sent{background:#dbeafe;color:#1e40af}.badge-signed{background:#dcfce7;color:#166534}.badge-attorney{background:#efe7ff;color:#6b21a8}.badge-closed{background:#bbf7d0;color:#065f46}
+    .dropzone { border:2px dashed #bae6fd; border-radius:1rem; padding:1rem; text-align:center; color:#0c4a6e; background:#f0f9ff; }
+    .kanban-col { background:linear-gradient(180deg,#f8fafc,#eef2ff); border-radius:1rem; padding:.75rem; min-height:220px; }
+    .tab { border-bottom:2px solid transparent; padding:.5rem .75rem; border-radius:.5rem .5rem 0 0; }
+    .tab.active { border-color:#06b6d4; background:#cffafe; color:#0e7490; }
+    canvas.sig { touch-action:none; }
+    .draggable { cursor:grab; }
+    .draggable:active { cursor:grabbing; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-brand-50 via-white to-accent-50 text-gray-800 min-h-screen">
+  <div class="max-w-7xl mx-auto p-4 md:p-8">
+    <header class="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-500 to-accent-500 grid place-content-center text-white font-bold shadow">DD</div>
+        <div>
+          <h1 class="text-2xl font-semibold">DealDesk CRM — Wholesale & Subject-To</h1>
+          <p class="text-xs text-gray-600">Contracts • Pipeline • DocuSign-style Signer • Buyers CRM • PWA</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button id="installBtn" class="btn btn-outline"><i data-lucide="download"></i>Install</button>
+        <button id="exportCsvBtn" class="btn btn-outline"><i data-lucide="file-down"></i>Export CSV</button>
+        <button id="backupBtn" class="btn btn-outline"><i data-lucide="database"></i>Backup</button>
+        <input id="restoreInput" type="file" accept="application/json" class="hidden" />
+        <button id="restoreBtn" class="btn btn-outline"><i data-lucide="rotate-ccw"></i>Restore</button>
+        <button id="settingsBtn" class="btn btn-primary"><i data-lucide="settings"></i>Settings</button>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="flex gap-2 mb-4">
+      <button class="tab active" data-tab="contracts">Contracts</button>
+      <button class="tab" data-tab="pipeline">Pipeline</button>
+      <button class="tab" data-tab="signer">Sign Documents</button>
+      <button class="tab" data-tab="buyers">Buyers CRM</button>
+    </nav>
+
+    <!-- Contracts Tab -->
+    <section id="tab-contracts" class="grid lg:grid-cols-3 gap-6">
+      <!-- Generator -->
+      <section class="lg:col-span-2 card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">Create Contract</h2>
+          <div class="text-xs text-gray-500">Data saved locally</div>
+        </div>
+        <form id="dealForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Business Name</label>
+            <input class="w-full rounded-xl border-gray-200 focus:outline-none focus:ring-[var(--ring)]" id="bizName" placeholder="Your LLC Name" required />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Business Address</label>
+            <input class="w-full rounded-xl border-gray-200 focus:outline-none focus:ring-[var(--ring)]" id="bizAddress" placeholder="123 Main St, City, ST 00000" required />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Property Address</label>
+            <input class="w-full rounded-xl border-gray-200 focus:outline-none focus:ring-[var(--ring)]" id="propertyAddress" placeholder="456 Elm St, City, ST 00000" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Seller Name(s)</label>
+            <input class="w-full rounded-xl border-gray-200 focus:outline-none focus:ring-[var(--ring)]" id="sellerNames" placeholder="First Last; First Last" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Purchase Price ($)</label>
+            <input type="number" class="w-full rounded-xl border-gray-200 focus:outline-none focus:ring-[var(--ring)]" id="purchasePrice" placeholder="250000" required />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Deal Specifics / Terms</label>
+            <textarea class="w-full rounded-xl border-gray-200 focus:outline-none focus:ring-[var(--ring)]" id="dealTerms" rows="3" placeholder="Inspection days, earnest money, subject-to details, closing timeline, concessions, etc."></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Upload Property Photo</label>
+            <label class="dropzone" for="photoInput">Drop image or click to upload</label>
+            <input type="file" id="photoInput" accept="image/*" class="hidden" />
+            <div id="photoPreview" class="mt-2 hidden">
+              <img id="photoImg" class="w-full h-32 object-cover rounded-xl border"/>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Pipeline Status</label>
+            <select id="status" class="w-full rounded-xl border-gray-200">
+              <option value="lead">Lead</option>
+              <option value="offer">Offer Out</option>
+              <option value="pending">Pending Signature</option>
+              <option value="sent">Sent to Seller</option>
+              <option value="signed">Signed</option>
+              <option value="attorney">To Attorney / Title</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-2 grid grid-cols-3 gap-3 mt-2">
+            <button type="button" id="genPdfBtn" class="btn btn-outline"><i data-lucide="file-text"></i>Generate PDF</button>
+            <button type="submit" class="btn btn-primary"><i data-lucide="save"></i>Save Deal</button>
+            <button type="button" id="openDealDlg" class="btn btn-accent"><i data-lucide="folder-open"></i>Deal Details</button>
+          </div>
+        </form>
+
+        <details class="mt-6">
+          <summary class="font-medium cursor-pointer">Optional: Email the contract (EmailJS — no server)</summary>
+          <div class="mt-3 grid md:grid-cols-3 gap-4">
+            <input class="rounded-xl border-gray-200" id="emailTo" placeholder="Seller Email" />
+            <input class="rounded-xl border-gray-200" id="emailjsService" placeholder="EmailJS Service ID" />
+            <input class="rounded-xl border-gray-200" id="emailjsTemplate" placeholder="EmailJS Template ID" />
+            <input class="rounded-xl border-gray-200 md:col-span-2" id="emailjsPublic" placeholder="EmailJS Public Key" />
+            <button id="sendEmailBtn" class="btn btn-outline"><i data-lucide="send"></i>Send Contract Email</button>
+          </div>
+        </details>
+      </section>
+
+      <!-- Deals Table -->
+      <section class="card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">Deals</h2>
+          <div class="flex items-center gap-2">
+            <input id="search" class="rounded-xl border-gray-200" placeholder="Search address/seller" />
+            <select id="filterStatus" class="rounded-xl border-gray-200">
+              <option value="">All Statuses</option>
+              <option value="lead">Lead</option>
+              <option value="offer">Offer</option>
+              <option value="pending">Pending</option>
+              <option value="sent">Sent</option>
+              <option value="signed">Signed</option>
+              <option value="attorney">Attorney</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="text-left text-gray-500">
+              <tr><th class="py-2 pr-4">Property</th><th class="py-2 pr-4">Seller(s)</th><th class="py-2 pr-4">Price</th><th class="py-2 pr-4">Status</th><th class="py-2 pr-4">Actions</th></tr>
+            </thead>
+            <tbody id="dealRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- Pipeline (Podio-style) -->
+    <section id="tab-pipeline" class="hidden">
+      <aside class="card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">Pipeline Board</h2>
+          <div class="text-sm text-gray-500" id="dealCount"></div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          <div><div class="text-xs font-semibold mb-2">Lead</div><div id="col-lead" class="kanban-col droptarget" data-status="lead"></div></div>
+          <div><div class="text-xs font-semibold mb-2">Offer</div><div id="col-offer" class="kanban-col droptarget" data-status="offer"></div></div>
+          <div><div class="text-xs font-semibold mb-2">Pending</div><div id="col-pending" class="kanban-col droptarget" data-status="pending"></div></div>
+          <div><div class="text-xs font-semibold mb-2">Sent</div><div id="col-sent" class="kanban-col droptarget" data-status="sent"></div></div>
+          <div><div class="text-xs font-semibold mb-2">Signed</div><div id="col-signed" class="kanban-col droptarget" data-status="signed"></div></div>
+          <div><div class="text-xs font-semibold mb-2">Attorney</div><div id="col-attorney" class="kanban-col droptarget" data-status="attorney"></div></div>
+          <div class="col-span-2 lg:col-span-3"><div class="text-xs font-semibold mb-2">Closed</div><div id="col-closed" class="kanban-col droptarget" data-status="closed"></div></div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Signer Tab -->
+    <section id="tab-signer" class="hidden">
+      <div class="grid lg:grid-cols-3 gap-6">
+        <section class="card lg:col-span-2">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-semibold">Sign Documents (Basic)</h2>
+            <div class="text-xs text-gray-500">Upload PDF → place fields → finalize</div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <input id="pdfFile" type="file" accept="application/pdf" class="hidden" />
+            <label for="pdfFile" class="btn btn-outline"><i data-lucide="file-up"></i>Upload PDF</label>
+            <button id="addSigBtn" class="btn btn-accent" disabled><i data-lucide="pen-line"></i>Add Signature</button>
+            <button id="addInitBtn" class="btn btn-outline" disabled><i data-lucide="signature"></i>Add Initials</button>
+            <button id="finishBtn" class="btn btn-primary" disabled><i data-lucide="check-circle-2"></i>Finalize & Download</button>
+          </div>
+
+          <div id="pdfContainer" class="space-y-4 max-h-[70vh] overflow-auto bg-white rounded-xl p-3 border"></div>
+        </section>
+
+        <aside class="card">
+          <h3 class="font-semibold mb-2">Signer</h3>
+          <p class="text-sm text-gray-600 mb-2">Draw your signature/initials once, then place on the pages.</p>
+          <div class="space-y-3">
+            <div>
+              <label class="text-xs font-semibold">Signature</label>
+              <canvas id="sigPad" class="sig w-full h-40 bg-white border rounded-xl"></canvas>
+              <div class="flex gap-2 mt-2">
+                <button id="sigClear" class="btn btn-outline text-xs">Clear</button>
+                <button id="sigSave" class="btn btn-primary text-xs">Save Signature</button>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-semibold">Initials</label>
+              <canvas id="initPad" class="sig w-full h-24 bg-white border rounded-xl"></canvas>
+              <div class="flex gap-2 mt-2">
+                <button id="initClear" class="btn btn-outline text-xs">Clear</button>
+                <button id="initSave" class="btn btn-primary text-xs">Save Initials</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Buyers CRM -->
+    <section id="tab-buyers" class="hidden">
+      <div class="card">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">Buyers CRM</h2>
+          <button id="addBuyerBtn" class="btn btn-primary"><i data-lucide="user-plus"></i>Add Buyer</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead class="text-left text-gray-500">
+              <tr><th class="py-2 pr-4">Buyer</th><th class="py-2 pr-4">Email</th><th class="py-2 pr-4">Phone</th><th class="py-2 pr-4">Criteria</th><th class="py-2 pr-4">Notes</th><th class="py-2 pr-4">Actions</th></tr>
+            </thead>
+            <tbody id="buyerRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <footer class="text-xs text-gray-600 mt-8 space-y-2">
+      <p><strong>Legal:</strong> The basic signer is for convenience. For ESIGN/UETA-compliant signatures with audit trail, integrate an approved provider (Dropbox Sign / SignWell / DocuSign). We can wire that next.</p>
+      <p>* Offline note: Include <code>sw.js</code> at repo root to enable install/offline.</p>
+    </footer>
+  </div>
+
+  <!-- Deal Card Template -->
+  <template id="dealCardTpl">
+    <div class="bg-white rounded-xl border p-3 text-sm space-y-1 draggable" draggable="true">
+      <div class="font-medium address"></div>
+      <div class="text-xs text-gray-500 seller"></div>
+      <div class="flex items-center justify-between pt-1">
+        <span class="badge status-badge"></span>
+        <div class="flex gap-1">
+          <button class="btn btn-outline moveBtn text-xs px-2 py-1">Move</button>
+          <button class="btn btn-outline pdfBtn text-xs px-2 py-1">PDF</button>
+          <button class="btn btn-outline detailBtn text-xs px-2 py-1">Details</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- Deal Details Dialog -->
+  <dialog id="dealDlg" class="w-full max-w-3xl rounded-2xl p-0">
+    <div class="p-5 border-b flex items-center justify-between">
+      <h3 class="font-semibold">Deal Details</h3>
+      <button class="btn btn-outline" onclick="dealDlg.close()">Close</button>
+    </div>
+    <div class="p-5 grid md:grid-cols-3 gap-4 text-sm">
+      <div class="md:col-span-3">
+        <label class="font-semibold">Notes</label>
+        <textarea id="dealNotes" rows="4" class="w-full border rounded-lg p-2" placeholder="Call notes, seller situation, repair scope, ARV, MAO..."></textarea>
+      </div>
+      <div>
+        <label class="font-semibold">Add Attachment</label>
+        <input type="file" id="dealFile" class="w-full border rounded-lg p-1" />
+        <button id="dealAddFile" class="btn btn-outline mt-2 text-xs">Attach</button>
+      </div>
+      <div class="md:col-span-2">
+        <label class="font-semibold">Attachments</label>
+        <ul id="dealFiles" class="list-disc pl-5 space-y-1"></ul>
+      </div>
+      <div class="md:col-span-3">
+        <button id="dealSave" class="btn btn-primary"><i data-lucide="save"></i>Save</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Buyer Dialog -->
+  <dialog id="buyerDlg" class="w-full max-w-xl rounded-2xl p-0">
+    <div class="p-5 border-b flex items-center justify-between">
+      <h3 class="font-semibold">Add/Edit Buyer</h3>
+      <button class="btn btn-outline" onclick="buyerDlg.close()">Close</button>
+    </div>
+    <div class="p-5 grid md:grid-cols-2 gap-3 text-sm">
+      <input id="bName" placeholder="Buyer Name" class="border rounded-lg p-2" />
+      <input id="bEmail" placeholder="Email" class="border rounded-lg p-2" />
+      <input id="bPhone" placeholder="Phone" class="border rounded-lg p-2" />
+      <input id="bCriteria" placeholder="Criteria (zip codes, beds, price)" class="border rounded-lg p-2 md:col-span-2" />
+      <textarea id="bNotes" placeholder="Notes" rows="3" class="border rounded-lg p-2 md:col-span-2"></textarea>
+      <div class="md:col-span-2"><button id="buyerSave" class="btn btn-primary">Save</button></div>
+    </div>
+  </dialog>
+
+  <dialog id="settingsDlg" class="w-full max-w-3xl rounded-2xl p-0">
+    <div class="p-5 border-b flex items-center justify-between">
+      <h3 class="font-semibold">Settings</h3>
+      <button class="btn btn-outline" onclick="settingsDlg.close()">Close</button>
+    </div>
+    <div class="p-5 space-y-4">
+      <details open>
+        <summary class="font-medium">Service Worker (copy into <code>sw.js</code>)</summary>
+        <pre class="text-xs bg-gray-50 p-3 rounded-xl overflow-x-auto">const CACHE = 'dealdesk-crm-v3';
+self.addEventListener('install', e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html'])))});
+self.addEventListener('fetch', e=>{e.respondWith((async()=>{try{const r=await fetch(e.request);const c=await caches.open(CACHE);c.put(e.request,r.clone());return r}catch{const m=await caches.match(e.request);return m||caches.match('./')}})())});</pre>
+        <p class="text-xs text-gray-500">Commit this file at your repo root, then the app will cache itself for offline.</p>
+      </details>
+    </div>
+  </dialog>
+
+  <button id="settingsBtn" class="fixed bottom-4 right-4 btn btn-primary shadow-lg"><i data-lucide="settings"></i>Settings</button>
+
+  <script>
+    // Icons
+    window.addEventListener('DOMContentLoaded', () => lucide.createIcons());
+
+    // Tabs
+    const tabs = document.querySelectorAll('.tab');
+    const sections = { contracts: '#tab-contracts', pipeline: '#tab-pipeline', signer: '#tab-signer', buyers: '#tab-buyers' };
+    tabs.forEach(t => t.addEventListener('click', () => {
+      tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active');
+      Object.values(sections).forEach(sel => document.querySelector(sel).classList.add('hidden'));
+      document.querySelector(sections[t.dataset.tab]).classList.remove('hidden');
+    }));
+
+    // State
+    const state = {
+      deals: JSON.parse(localStorage.getItem('deals') || '[]'),
+      buyers: JSON.parse(localStorage.getItem('buyers') || '[]'),
+      photoDataUrl: null,
+      deferredPrompt: null,
+      signer: { pdfBytes: null, pages: [], signatureUrl: null, initialsUrl: null, placements: [] },
+      ui: { currentDealIdx: null, currentBuyerIdx: null }
+    }
+    const saveDeals = () => localStorage.setItem('deals', JSON.stringify(state.deals));
+    const saveBuyers = () => localStorage.setItem('buyers', JSON.stringify(state.buyers));
+
+    // Utils
+    const $ = (sel) => document.querySelector(sel);
+    const money = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(n||0));
+    const STATUS_MAP = {
+      lead:    { label: 'Lead',              cls: 'badge-lead' },
+      offer:   { label: 'Offer Out',         cls: 'badge-offer' },
+      pending: { label: 'Pending Signature', cls: 'badge-pending' },
+      sent:    { label: 'Sent to Seller',    cls: 'badge-sent' },
+      signed:  { label: 'Signed',            cls: 'badge-signed' },
+      attorney:{ label: 'To Attorney / Title',cls: 'badge-attorney'},
+      closed:  { label: 'Closed',            cls: 'badge-closed' },
+    }
+
+    // Contract Template
+    const CONTRACT_TEMPLATE = ({bizName,bizAddress,propertyAddress,sellerNames,purchasePrice,dealTerms,date}) => `
+PURCHASE AGREEMENT
+
+Date: ${date}
+
+Buyer: ${bizName}, located at ${bizAddress}.
+Seller(s): ${sellerNames}.
+Property: ${propertyAddress}.
+
+Purchase Price: ${money(purchasePrice)}.
+Earnest Money: $1,000 (refundable within inspection period unless otherwise stated).
+Closing: On or before 30 days from execution, or as mutually agreed.
+Condition: Property sold AS-IS. Buyer may access property for inspections.
+Title & Taxes: Seller to provide clear, marketable title. Taxes prorated at closing.
+Assignments: Buyer may assign this agreement.
+Subject-To (if applicable): Buyer may take title subject-to existing financing per addendum.
+Additional Terms: ${dealTerms || 'N/A'}.
+
+Signatures:
+
+Buyer: ____________________________   Date: ____________
+Seller: ____________________________   Date: ____________
+Seller: ____________________________   Date: ____________
+`;
+
+    // PDF Generation for contracts
+    async function generatePdf(deal, includePhoto = true) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+      const margin = 40; const lineHeight = 16; const maxWidth = 515;
+      doc.setFont('Helvetica','bold'); doc.setFontSize(16);
+      doc.text('PURCHASE AGREEMENT', margin, 60);
+      let y = 90;
+      if (includePhoto && deal.photoDataUrl) { try { doc.addImage(deal.photoDataUrl, 'JPEG', margin, y, 140, 100); } catch {} y += 120; }
+      doc.setFont('Helvetica','normal'); doc.setFontSize(11);
+      const text = CONTRACT_TEMPLATE({ ...deal, date: new Date().toLocaleDateString() });
+      const lines = doc.splitTextToSize(text, maxWidth);
+      lines.forEach((ln, idx) => doc.text(ln, margin, y + idx*lineHeight));
+      doc.setFontSize(9);
+      doc.text('Generated by DealDesk — For attorney review. Not legal advice.', margin, 760);
+      return doc;
+    }
+
+    // Renderers
+    function renderPipeline() {
+      document.getElementById('dealCount').textContent = `${state.deals.length} total deals`;
+      Object.keys(STATUS_MAP).forEach(st => {
+        const col = document.getElementById('col-' + st);
+        if (!col) return;
+        col.innerHTML = '';
+        state.deals.filter(d => d.status === st).forEach((deal, idx) => {
+          const tpl = document.getElementById('dealCardTpl');
+          const node = tpl.content.cloneNode(true);
+          node.querySelector('.address').textContent = deal.propertyAddress;
+          node.querySelector('.seller').textContent = `${deal.sellerNames} • ${money(deal.purchasePrice)}`;
+          const badge = node.querySelector('.status-badge');
+          badge.textContent = STATUS_MAP[deal.status].label;
+          badge.className = `badge ${STATUS_MAP[deal.status].cls} status-badge`;
+          node.querySelector('.moveBtn').onclick = () => { advanceStatus(deal); }
+          node.querySelector('.pdfBtn').onclick = async () => { (await generatePdf(deal)).save(`Contract_${deal.propertyAddress.replaceAll(' ','_')}.pdf`); }
+          node.querySelector('.detailBtn').onclick = () => openDealDetails(deal);
+          const el = node.firstElementChild;
+          el.dataset.idx = state.deals.indexOf(deal);
+          col.appendChild(node);
+        })
+      })
+      enableDnD();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('dealRows');
+      const q = (document.getElementById('search').value || '').toLowerCase();
+      const fs = document.getElementById('filterStatus').value;
+      tbody.innerHTML = '';
+      state.deals
+        .filter(d => (!fs || d.status === fs))
+        .filter(d => d.propertyAddress.toLowerCase().includes(q) || d.sellerNames.toLowerCase().includes(q))
+        .forEach((d, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="py-2 pr-4">${d.propertyAddress}</td>
+            <td class="py-2 pr-4">${d.sellerNames}</td>
+            <td class="py-2 pr-4">${money(d.purchasePrice)}</td>
+            <td class="py-2 pr-4"><span class="badge ${STATUS_MAP[d.status].cls}">${STATUS_MAP[d.status].label}</span></td>
+            <td class="py-2 pr-4 flex gap-2">
+              <button class="btn btn-outline text-xs px-2 py-1 gen">PDF</button>
+              <button class="btn btn-outline text-xs px-2 py-1 edit">Edit</button>
+              <button class="btn btn-outline text-xs px-2 py-1 del">Delete</button>
+            </td>`;
+          tr.querySelector('.gen').onclick = async () => { (await generatePdf(d)).save(`Contract_${d.propertyAddress.replaceAll(' ','_')}.pdf`); }
+          tr.querySelector('.edit').onclick = () => loadDealIntoForm(idx);
+          tr.querySelector('.del').onclick = () => { if(confirm('Delete this deal?')) { state.deals.splice(idx,1); saveDeals(); renderPipeline(); renderTable(); } }
+          tbody.appendChild(tr);
+        })
+    }
+
+    function renderBuyers() {
+      const tbody = document.getElementById('buyerRows');
+      tbody.innerHTML = '';
+      state.buyers.forEach((b, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-2 pr-4">${b.name||''}</td>
+          <td class="py-2 pr-4">${b.email||''}</td>
+          <td class="py-2 pr-4">${b.phone||''}</td>
+          <td class="py-2 pr-4">${b.criteria||''}</td>
+          <td class="py-2 pr-4">${b.notes||''}</td>
+          <td class="py-2 pr-4 flex gap-2">
+            <button class="btn btn-outline text-xs px-2 py-1 edit">Edit</button>
+            <button class="btn btn-outline text-xs px-2 py-1 del">Delete</button>
+          </td>`;
+        tr.querySelector('.edit').onclick = () => openBuyerDlg(i);
+        tr.querySelector('.del').onclick = () => { if(confirm('Delete buyer?')) { state.buyers.splice(i,1); saveBuyers(); renderBuyers(); } }
+        tbody.appendChild(tr);
+      });
+    }
+
+    // DnD
+    function enableDnD() {
+      document.querySelectorAll('.draggable').forEach(el => {
+        el.addEventListener('dragstart', e => {
+          e.dataTransfer.setData('text/plain', el.dataset.idx);
+        });
+      });
+      document.querySelectorAll('.droptarget').forEach(target => {
+        target.addEventListener('dragover', e => e.preventDefault());
+        target.addEventListener('drop', e => {
+          e.preventDefault();
+          const idx = Number(e.dataTransfer.getData('text/plain'));
+          const newStatus = target.dataset.status;
+          state.deals[idx].status = newStatus;
+          saveDeals(); renderPipeline(); renderTable();
+        });
+      });
+    }
+
+    function advanceStatus(deal) {
+      const order = Object.keys(STATUS_MAP);
+      const i = order.indexOf(deal.status);
+      deal.status = order[(i+1)%order.length];
+      saveDeals(); renderPipeline(); renderTable();
+    }
+
+    function loadDealIntoForm(idx){
+      const d = state.deals[idx];
+      document.getElementById('bizName').value = d.bizName; document.getElementById('bizAddress').value = d.bizAddress;
+      document.getElementById('propertyAddress').value = d.propertyAddress; document.getElementById('sellerNames').value = d.sellerNames;
+      document.getElementById('purchasePrice').value = d.purchasePrice; document.getElementById('dealTerms').value = d.dealTerms || '';
+      document.getElementById('status').value = d.status; state.photoDataUrl = d.photoDataUrl || null;
+      if (state.photoDataUrl) { document.getElementById('photoPreview').classList.remove('hidden'); document.getElementById('photoImg').src = state.photoDataUrl; }
+      document.getElementById('dealForm').dataset.idx = idx;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      openDealDetails(d);
+    }
+
+    // Deal details dialog
+    const dealDlg = document.getElementById('dealDlg');
+    const dealNotes = document.getElementById('dealNotes');
+    const dealFiles = document.getElementById('dealFiles');
+    const dealFileInput = document.getElementById('dealFile');
+    let activeDeal = null;
+
+    function openDealDetails(deal) {
+      activeDeal = deal;
+      dealNotes.value = deal.notes || '';
+      renderDealFiles();
+      dealDlg.showModal();
+    }
+    function renderDealFiles() {
+      dealFiles.innerHTML = '';
+      (activeDeal.attachments||[]).forEach((f,i)=>{
+        const li = document.createElement('li');
+        const a = document.createElement('a'); a.href = f.data; a.textContent = f.name; a.download = f.name;
+        const del = document.createElement('button'); del.textContent = '✕'; del.className='ml-2 text-xs text-red-600'; del.onclick = ()=>{ activeDeal.attachments.splice(i,1); saveDeals(); renderDealFiles(); }
+        li.appendChild(a); li.appendChild(del); dealFiles.appendChild(li);
+      });
+    }
+    document.getElementById('dealAddFile').addEventListener('click', ()=>{
+      const file = dealFileInput.files && dealFileInput.files[0]; if(!file) return;
+      const rdr = new FileReader();
+      rdr.onload = ()=>{ activeDeal.attachments = activeDeal.attachments||[]; activeDeal.attachments.push({ name:file.name, data:rdr.result }); saveDeals(); renderDealFiles(); dealFileInput.value = ''; }
+      rdr.readAsDataURL(file);
+    });
+    document.getElementById('dealSave').addEventListener('click', ()=>{
+      activeDeal.notes = dealNotes.value;
+      saveDeals();
+      dealDlg.close();
+      renderPipeline(); renderTable();
+    });
+    document.getElementById('openDealDlg').addEventListener('click', ()=>{
+      const idx = document.getElementById('dealForm').dataset.idx;
+      const targetDeal = idx ? state.deals[idx] : state.deals[0];
+      if (!targetDeal) { alert('No deal selected or saved yet.'); return; }
+      openDealDetails(targetDeal);
+    });
+
+    // Form events
+    document.getElementById('dealForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const deal = {
+        bizName: document.getElementById('bizName').value.trim(),
+        bizAddress: document.getElementById('bizAddress').value.trim(),
+        propertyAddress: document.getElementById('propertyAddress').value.trim(),
+        sellerNames: document.getElementById('sellerNames').value.trim(),
+        purchasePrice: parseFloat(document.getElementById('purchasePrice').value || '0'),
+        dealTerms: document.getElementById('dealTerms').value.trim(),
+        status: document.getElementById('status').value,
+        photoDataUrl: state.photoDataUrl || null,
+        notes: '',
+        attachments: [],
+        createdAt: Date.now(),
+      }
+      const idx = e.currentTarget.dataset.idx;
+      if (idx !== undefined && idx !== '') { state.deals[idx] = { ...state.deals[idx], ...deal }; delete e.currentTarget.dataset.idx; } else { state.deals.unshift(deal); }
+      saveDeals(); renderPipeline(); renderTable();
+      e.currentTarget.reset(); state.photoDataUrl = null; document.getElementById('photoPreview').classList.add('hidden');
+    });
+    document.getElementById('photoInput').addEventListener('change', async (e)=>{
+      const file = e.target.files[0]; if(!file) return; const rdr = new FileReader();
+      rdr.onload = ()=>{ state.photoDataUrl = rdr.result; document.getElementById('photoPreview').classList.remove('hidden'); document.getElementById('photoImg').src = rdr.result; }
+      rdr.readAsDataURL(file);
+    });
+    document.getElementById('genPdfBtn').addEventListener('click', async ()=>{
+      const idx = document.getElementById('dealForm').dataset.idx;
+      const deal = idx? state.deals[idx] : {
+        bizName: document.getElementById('bizName').value.trim(),
+        bizAddress: document.getElementById('bizAddress').value.trim(),
+        propertyAddress: document.getElementById('propertyAddress').value.trim(),
+        sellerNames: document.getElementById('sellerNames').value.trim(),
+        purchasePrice: parseFloat(document.getElementById('purchasePrice').value || '0'),
+        dealTerms: document.getElementById('dealTerms').value.trim(),
+        status: document.getElementById('status').value,
+        photoDataUrl: state.photoDataUrl || null,
+      };
+      const pdf = await generatePdf(deal);
+      const blob = pdf.output('blob');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `Contract_${(deal.propertyAddress||'').replaceAll(' ','_')}.pdf`; a.click();
+      window.__lastPdfUrl = url;
+    });
+
+    // EmailJS (optional)
+    async function sendEmailWithLink(pdfBlobUrl){
+      const service = document.getElementById('emailjsService').value.trim();
+      const template = document.getElementById('emailjsTemplate').value.trim();
+      const pub = document.getElementById('emailjsPublic').value.trim();
+      const to = document.getElementById('emailTo').value.trim();
+      if(!(service && template && pub && to)) { alert('Fill Email, Service ID, Template ID, and Public Key'); return; }
+      if (!window.emailjs) { await new Promise(res=>{ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js'; s.onload=res; document.body.appendChild(s); }) }
+      window.emailjs.init({ publicKey: pub });
+      const last = state.deals[0] || {};
+      try { await window.emailjs.send(service, template, { to_email: to, bizName: last.bizName||'', sellerNames: last.sellerNames||'', propertyAddress: last.propertyAddress||'', link: pdfBlobUrl }); alert('Email sent'); }
+      catch (e) { alert('Email failed: '+e.message); }
+    }
+    document.getElementById('sendEmailBtn').addEventListener('click', ()=>{
+      const url = window.__lastPdfUrl; if(!url) { alert('Generate PDF first.'); return; }
+      sendEmailWithLink(url);
+    });
+
+    // Buyers CRM
+    const buyerDlg = document.getElementById('buyerDlg');
+    document.getElementById('addBuyerBtn').addEventListener('click', ()=> openBuyerDlg());
+    function openBuyerDlg(idx=null) {
+      state.ui.currentBuyerIdx = idx;
+      const b = idx!=null ? state.buyers[idx] : {name:'',email:'',phone:'',criteria:'',notes:''};
+      document.getElementById('bName').value = b.name||'';
+      document.getElementById('bEmail').value = b.email||'';
+      document.getElementById('bPhone').value = b.phone||'';
+      document.getElementById('bCriteria').value = b.criteria||'';
+      document.getElementById('bNotes').value = b.notes||'';
+      buyerDlg.showModal();
+    }
+    document.getElementById('buyerSave').addEventListener('click', ()=>{
+      const b = {
+        name: document.getElementById('bName').value.trim(),
+        email: document.getElementById('bEmail').value.trim(),
+        phone: document.getElementById('bPhone').value.trim(),
+        criteria: document.getElementById('bCriteria').value.trim(),
+        notes: document.getElementById('bNotes').value.trim(),
+      }
+      const idx = state.ui.currentBuyerIdx;
+      if (idx!=null) { state.buyers[idx] = b; } else { state.buyers.unshift(b); }
+      saveBuyers(); renderBuyers(); buyerDlg.close();
+    });
+
+    // Search/filter & export/backup/restore
+    document.getElementById('search').addEventListener('input', renderTable);
+    document.getElementById('filterStatus').addEventListener('change', renderTable);
+    document.getElementById('exportCsvBtn').addEventListener('click', ()=>{
+      const rows = [['Business','Biz Address','Property','Sellers','Price','Status','Terms','Created']]
+        .concat(state.deals.map(d=>[d.bizName,d.bizAddress,d.propertyAddress,d.sellerNames,d.purchasePrice,d.status,(d.dealTerms||'').replaceAll('\n',' '),new Date(d.createdAt).toISOString()]));
+      const csv = rows.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='deals.csv'; a.click();
+    });
+    document.getElementById('backupBtn').addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify({deals:state.deals,buyers:state.buyers},null,2)],{type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='dealdesk-backup.json'; a.click();
+    });
+    document.getElementById('restoreBtn').addEventListener('click', ()=> document.getElementById('restoreInput').click());
+    document.getElementById('restoreInput').addEventListener('change', e=>{
+      const file = e.target.files[0]; if(!file) return;
+      const rdr = new FileReader();
+      rdr.onload = ()=>{ try { const obj = JSON.parse(rdr.result||'{}'); state.deals = obj.deals||[]; state.buyers = obj.buyers||[]; saveDeals(); saveBuyers(); renderPipeline(); renderTable(); renderBuyers(); alert('Restore complete'); } catch { alert('Invalid file'); } };
+      rdr.readAsText(file);
+    });
+
+    // PWA install & SW
+    window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); state.deferredPrompt = e; document.getElementById('installBtn').disabled = false; });
+    document.getElementById('installBtn').addEventListener('click', async ()=>{ if(!state.deferredPrompt) return alert('Install not available yet. Try again after a moment.'); state.deferredPrompt.prompt(); state.deferredPrompt = null; });
+    const settingsDlg = document.getElementById('settingsDlg'); document.getElementById('settingsBtn').addEventListener('click', ()=> settingsDlg.showModal());
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+
+    // ====== SIGNER ======
+    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const pdfFile = document.getElementById('pdfFile');
+    const pdfContainer = document.getElementById('pdfContainer');
+    const addSigBtn = document.getElementById('addSigBtn');
+    const addInitBtn = document.getElementById('addInitBtn');
+    const finishBtn = document.getElementById('finishBtn');
+    let currentTool = null;
+
+    pdfFile.addEventListener('change', async (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      state.signer.pdfBytes = await file.arrayBuffer();
+      await loadPdfForPreview(state.signer.pdfBytes);
+      addSigBtn.disabled = false; addInitBtn.disabled = false; finishBtn.disabled = false;
+    });
+    async function loadPdfForPreview(pdfBytes) {
+      pdfContainer.innerHTML = ''; state.signer.placements = [];
+      const loadingTask = pdfjsLib.getDocument({ data: pdfBytes }); const pdf = await loadingTask.promise; state.signer.pages = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i); const viewport = page.getViewport({ scale: 1.25 });
+        const canvas = document.createElement('canvas'); canvas.width = viewport.width; canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d'); await page.render({ canvasContext: ctx, viewport }).promise;
+        canvas.className = 'mx-auto border rounded-lg bg-white'; canvas.dataset.page = i; pdfContainer.appendChild(canvas);
+        state.signer.pages.push({ canvas, viewport });
+        canvas.addEventListener('click', (evt) => {
+          if (!currentTool) return;
+          const rect = canvas.getBoundingClientRect(); const x = evt.clientX - rect.left; const y = evt.clientY - rect.top;
+          placeFieldOnCanvas(canvas, x, y, currentTool === 'sig' ? 'Signature' : 'Initials');
+        });
+      }
+    }
+    function makePad(canvas) {
+      const ctx = canvas.getContext('2d'); let drawing = false, last = null;
+      function draw(e){
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.touches? e.touches[0].clientX : e.clientX) - rect.left;
+        const y = (e.touches? e.touches[0].clientY : e.clientY) - rect.top;
+        if(!drawing) return;
+        ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#111827';
+        ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(x,y); ctx.stroke();
+        last = {x,y};
+      }
+      canvas.addEventListener('mousedown', e=>{drawing=true; last={x:e.offsetX,y:e.offsetY}});
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', ()=> drawing=false);
+      canvas.addEventListener('mouseleave', ()=> drawing=false);
+      canvas.addEventListener('touchstart', e=>{drawing=true; const r=canvas.getBoundingClientRect(); last={x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top}}, {passive:true});
+      canvas.addEventListener('touchmove', draw, {passive:true});
+      canvas.addEventListener('touchend', ()=> drawing=false);
+      return { clear(){ ctx.clearRect(0,0,canvas.width,canvas.height) }, toDataURL(){ return canvas.toDataURL('image/png') } }
+    }
+    const sigPad = makePad(document.getElementById('sigPad'));
+    const initPad = makePad(document.getElementById('initPad'));
+    document.getElementById('sigClear').onclick = ()=> sigPad.clear();
+    document.getElementById('initClear').onclick = ()=> initPad.clear();
+    document.getElementById('sigSave').onclick = ()=> { state.signer.signatureUrl = sigPad.toDataURL(); alert('Signature saved. Click "Add Signature" then tap on the PDF.'); }
+    document.getElementById('initSave').onclick = ()=> { state.signer.initialsUrl = initPad.toDataURL(); alert('Initials saved. Click "Add Initials" then tap on the PDF.'); }
+    addSigBtn.addEventListener('click', ()=> currentTool = 'sig');
+    addInitBtn.addEventListener('click', ()=> currentTool = 'init');
+    function placeFieldOnCanvas(canvas, x, y, label) {
+      const ctx = canvas.getContext('2d');
+      ctx.save(); ctx.strokeStyle = '#06b6d4'; ctx.setLineDash([4,3]); ctx.strokeRect(x-60, y-18, 120, 36);
+      ctx.fillStyle = '#06b6d4'; ctx.font = '12px sans-serif'; ctx.fillText(label, x-55, y-24); ctx.restore();
+      state.signer.placements.push({ page: Number(canvas.dataset.page), x, y, type: label.toLowerCase() });
+    }
+    document.getElementById('finishBtn').addEventListener('click', async ()=>{
+      if (!state.signer.pdfBytes) return;
+      const pdfDoc = await PDFLib.PDFDocument.load(state.signer.pdfBytes);
+      const sigImg = state.signer.signatureUrl ? await pdfDoc.embedPng(state.signer.signatureUrl) : null;
+      const initImg = state.signer.initialsUrl ? await pdfDoc.embedPng(state.signer.initialsUrl) : null;
+      state.signer.placements.forEach(p => {
+        const page = pdfDoc.getPage(p.page - 1);
+        const { width, height } = page.getSize();
+        const canvasInfo = state.signer.pages[p.page - 1];
+        const scaleX = width / canvasInfo.canvas.width;
+        const scaleY = height / canvasInfo.canvas.height;
+        const img = p.type === 'signature' ? sigImg : initImg; if (!img) return;
+        const drawW = p.type === 'signature' ? 180 : 100; const drawH = p.type === 'signature' ? 50 : 40;
+        const pdfX = p.x * scaleX - (drawW/2); const pdfY = height - (p.y * scaleY) - (drawH/2);
+        page.drawImage(img, { x: pdfX, y: pdfY, width: drawW, height: drawH });
+      });
+      const bytes = await pdfDoc.save(); const blob = new Blob([bytes], {type:'application/pdf'});
+      const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='Signed_Document.pdf'; a.click();
+    });
+
+    // Init
+    renderPipeline(); renderTable(); renderBuyers();
+  </script>
+</body>
+</html>
