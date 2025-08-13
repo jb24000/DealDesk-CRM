@@ -67,6 +67,16 @@
     .kanban-col { background:linear-gradient(180deg,#f8fafc,#eef2ff); border-radius:1rem; padding:.75rem; min-height:220px; }
     .tab { border-bottom:2px solid transparent; padding:.5rem .75rem; border-radius:.5rem .5rem 0 0; }
     .tab.active { border-color:#06b6d4; background:#cffafe; color:#0e7490; }
+
+    .dropzone {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 140px; width: 100%;
+    border: 2px dashed #bae6fd; border-radius: 1rem;
+    background: #f0f9ff; color: #0c4a6e;
+    user-select: none;
+    }
+    .dropzone.dragover { outline: 3px solid rgba(14,165,233,.25); }
+    
     canvas.sig { touch-action:none; }
     .draggable { cursor:grab; }
     .draggable:active { cursor:grabbing; }
@@ -135,12 +145,12 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium mb-1">Upload Property Photo</label>
-            <label class="dropzone" for="photoInput">Drop image or click to upload</label>
+            <div id="photoDrop" class="dropzone">Drop image or click to upload</div>
             <input type="file" id="photoInput" accept="image/*" class="hidden" />
             <div id="photoPreview" class="mt-2 hidden">
               <img id="photoImg" class="w-full h-32 object-cover rounded-xl border"/>
             </div>
+
           </div>
 
           <div>
@@ -629,6 +639,26 @@ Seller: ____________________________   Date: ____________
       rdr.onload = ()=>{ state.photoDataUrl = rdr.result; document.getElementById('photoPreview').classList.remove('hidden'); document.getElementById('photoImg').src = rdr.result; }
       rdr.readAsDataURL(file);
     });
+
+      const photoDrop = document.getElementById('photoDrop');
+      const photoInputEl = document.getElementById('photoInput');
+
+      photoDrop.addEventListener('click', () => photoInputEl.click());
+      photoDrop.addEventListener('dragover', (e) => { e.preventDefault(); photoDrop.classList.add('dragover'); });
+      photoDrop.addEventListener('dragleave', () => photoDrop.classList.remove('dragover'));
+      photoDrop.addEventListener('drop', (e) => {
+      e.preventDefault(); photoDrop.classList.remove('dragover');
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (!file) return;
+      const rdr = new FileReader();
+      rdr.onload = () => {
+      state.photoDataUrl = rdr.result;
+      document.getElementById('photoPreview').classList.remove('hidden');
+      document.getElementById('photoImg').src = rdr.result;
+     };
+      rdr.readAsDataURL(file);
+    });
+    
     document.getElementById('genPdfBtn').addEventListener('click', async ()=>{
       const idx = document.getElementById('dealForm').dataset.idx;
       const deal = idx? state.deals[idx] : {
